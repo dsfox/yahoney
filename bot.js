@@ -41,6 +41,7 @@ const ERROR_EMPTY_LIST = "Список пуст :(";
 const ERROR_SEASON_CLOSED = "Сезон приема закзазов закрыт. Вы можете подписаться на открытие сезона - /subscribe или связаться с dsfox@ чтобы узнать подробности.";
 const ERROR_SUBSCRIBE = "Вы уже подписаны на уведомления.";
 const ERROR_UNSUBSCRIBE = "Вы и так отписаны от уведомлений.";
+const ERROR_UNKONOWN_CMD = ["Это не похоже на одну из моих команд. Может Вы опечатались?", "Я очень простой бот. Я понимаю только ограниченый набор команд. Чтобы их посмотреть, напишите мне /start", "Я всего лишь бот :( если Вам нужно что-то обсудить - напишите или позвоните dsfox@. Я же понимаю только ограниченный набор команд.", "Что? Я не знаю такой команды :("]
 
 const TEXT_OK = "Вот и хорошо ...";
 const TEXT_WAT = " А?";
@@ -321,6 +322,8 @@ bot.on("text", function(msg) {
             } else {
                 answer(messageChatId, ERROR_NO_ORDERS);
             }
+        } else {
+            answerError(messageChatId);
         }
     } else { //handle ADMIN commands
         if (messageText === "/subscribers") {
@@ -440,13 +443,15 @@ bot.on("text", function(msg) {
             } else {
                 answer(messageChatId, ERROR_CLOSE_SEASON);
             }
+        } else {
+            answerError(messageChatId);
         }
     }
 
     lastUser = messageUsr;
     lastDate = messageDate;
 
-    console.log(msg);
+    console.log('UNKNOWN MSG: ', msg);
 });
 
 function parseCmd(text) {
@@ -477,4 +482,8 @@ function backup() {
 
 function answer(aChatId, aMessage) {
     bot.sendMessage(aChatId, aMessage);
+}
+
+function answerError(chatId) {
+    answer(chatId, ERROR_UNKONOWN_CMD[Math.floor(Math.random() * (ERROR_UNKONOWN_CMD.length))]);
 }
