@@ -41,7 +41,7 @@ const ERROR_EMPTY_LIST = "Список пуст :(";
 const ERROR_SEASON_CLOSED = "Сезон приема закзазов закрыт. Вы можете подписаться на открытие сезона - /subscribe или связаться с dsfox@ чтобы узнать подробности.";
 const ERROR_SUBSCRIBE = "Вы уже подписаны на уведомления.";
 const ERROR_UNSUBSCRIBE = "Вы и так отписаны от уведомлений.";
-const ERROR_UNKONOWN_CMD = ["Это не похоже на одну из моих команд. Может Вы опечатались?", "Я очень простой бот. Я понимаю только ограниченый набор команд. Чтобы их посмотреть, напишите мне /start", "Я всего лишь бот :( если Вам нужно что-то обсудить - напишите или позвоните dsfox@. Я же понимаю только ограниченный набор команд.", "Что? Я не знаю такой команды :("]
+const ERROR_UNKONOWN_CMD = ["Это не похоже на одну из моих команд. Может Вы опечатались?", "Я очень простой бот. Я понимаю только ограниченый набор команд. Чтобы их посмотреть, напишите мне /start", "Я всего лишь бот :( если Вам нужно что-то обсудить - напишите или позвоните dsfox@. Я же понимаю только ограниченный набор команд.", "Что? Я не знаю такой команды :("];
 
 const TEXT_OK = "Вот и хорошо ...";
 const TEXT_WAT = " А?";
@@ -107,6 +107,7 @@ bot.on("text", function(msg) {
     var messageUsr = msg.from.username;
     var lastUser = null;
     var lastDate = 0;
+    var fakeUser = false;
 
     //banned check
     Object.keys(blacklist).forEach(function(user) {
@@ -138,6 +139,11 @@ bot.on("text", function(msg) {
         } else if (ddosUsers[messageUsr]) {
             delete ddosUsers[messageUsr];
         }
+    }
+
+    if (messageText.indexOf("//") == 0) {
+        messageText = messageText.substr(1);
+        fakeUser = true;
     }
 
     //handle bot conversation reset
@@ -255,7 +261,7 @@ bot.on("text", function(msg) {
         return;
     }
 
-    if (messageChatId !== ADMIN_ID) { //handle new user commands
+    if (messageChatId !== ADMIN_ID || fakeUser) { //handle new user commands
         if (messageText === "/subscribe") {
             if (settings.subscribers[messageUsr]) {
                 answer(messageChatId, ERROR_SUBSCRIBE);
@@ -443,8 +449,6 @@ bot.on("text", function(msg) {
             } else {
                 answer(messageChatId, ERROR_CLOSE_SEASON);
             }
-        } else {
-            answerError(messageChatId);
         }
     }
 
