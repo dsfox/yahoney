@@ -483,9 +483,9 @@ function flush() {
 }
 
 function backup() {
-    var reSlash = new RegExp('/', 'g'); //unix
-    var reDot = new RegExp('.', 'g'); //mac
-    var d = (new Date(Date.now())).toLocaleDateString().replace(reDot, '_').replace(reSlash, '_');
+    var d = (new Date(Date.now())).toLocaleDateString();
+    d = d.replace(new RegExp('.', 'g'), '_');//mac
+    d = d.replace(new RegExp('/', 'g'), '_');//unix
     fs.writeFileSync(FILE_ORDERS + '_' + d + '.backup', JSON.stringify(orders));
 }
 
