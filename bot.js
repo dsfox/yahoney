@@ -100,11 +100,14 @@ bot.getMe().then(function(me) {
     console.log("And my username is @%s.", me.username);
 });
 
+//todo: switch all keys from messageUsr to messageUserId
+
 bot.on("text", function(msg) {
     var messageChatId = msg.chat.id;
     var messageText = msg.text;
     var messageDate = msg.date;
-    var messageUsr = msg.from.username;
+    var messageUsr = msg.from.username || msg.last_name;
+    var messageUserId = msg.from.id;
     var lastUser = null;
     var lastDate = 0;
     var fakeUser = false;
@@ -480,7 +483,7 @@ function flush() {
 }
 
 function backup() {
-    var d = (new Date(Date.now())).toLocaleDateString().replace('.', '_');
+    var d = (new Date(Date.now())).toLocaleDateString().replace('.', '_').replace('/','_');
     fs.writeFileSync(FILE_ORDERS + '_' + d + '.backup', JSON.stringify(orders));
 }
 
