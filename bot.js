@@ -106,7 +106,7 @@ bot.on("text", function(msg) {
     var messageChatId = msg.chat.id;
     var messageText = msg.text;
     var messageDate = msg.date;
-    var messageUsr = msg.from.username || msg.last_name;
+    var messageUsr = msg.from.username || msg.from.last_name;
     var messageUserId = msg.from.id;
     var lastUser = null;
     var lastDate = 0;
