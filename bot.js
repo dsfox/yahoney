@@ -75,8 +75,7 @@ const TEXT_SUBSCRIBE_OK = "Вы подписались на уведомлени
 const TEXT_UNSUBSCRIBE_OK = "Вы отписались от уведомлений";
 const TEXT_VIEW_ORDER = "Ваш заказ: ";
 
-const ADMIN = "dsfox";
-const ADMIN_ID = 104410529;
+const ADMIN_ID = 104410529; //dsfox@
 
 var YaHoneyBot = require("node-telegram-bot-api");
 var fs = require("fs");
@@ -213,12 +212,12 @@ bot.on("text", function(msg) {
         }
 
         //handle open admin conversations
-        if (chatStates[ADMIN] === CHAT_STATE_SETSTATUS_QUEST) {
+        if (chatStates[ADMIN_ID] === CHAT_STATE_SETSTATUS_QUEST) {
             var n = Number(mText);
             if (n === NaN || n < 0 || n >= orderSates.length) {
                 answer(cid, ERROR_SETSTATUS_QUEST);
             } else if (n == 0) {
-                chatStates[ADMIN] = CHAT_STATE_SETSTATUS_CUSTOM;
+                chatStates[ADMIN_ID] = CHAT_STATE_SETSTATUS_CUSTOM;
                 answer(cid, TEXT_QUEST_SETSTATUS_CUSTOM);
             } else {
                 var state = orderSates[n];
@@ -228,21 +227,21 @@ bot.on("text", function(msg) {
                         answer(orders[i].chatId, state);
                     }
                 }
-                delete chatStates[ADMIN];
+                delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + state + '»');
                 flush();
             }
-        } else if (chatStates[ADMIN] === CHAT_STATE_SETSTATUS_CUSTOM) {
+        } else if (chatStates[ADMIN_ID] === CHAT_STATE_SETSTATUS_CUSTOM) {
             for (var i in orders) {
                 orders[i].state = mText;
                 if (orders[i].track) {
                     answer(orders[i].chatId, mText);
                 }
             }
-            delete chatStates[ADMIN];
+            delete chatStates[ADMIN_ID];
             answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + mText + '»');
             flush();
-        } else if (chatStates[ADMIN] === CHAT_STATE_CLOSE_SEASON) {
+        } else if (chatStates[ADMIN_ID] === CHAT_STATE_CLOSE_SEASON) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 backup();
                 orders = {};
@@ -250,10 +249,10 @@ bot.on("text", function(msg) {
                 blacklist = {};
                 settings.open = false;
                 flush();
-                delete chatStates[ADMIN];
+                delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_SEASON_CLOSE);
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
-                delete chatStates[ADMIN];
+                delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_OK);
             } else {
                 answer(cid, TEXT_WAT);
@@ -445,7 +444,7 @@ bot.on("text", function(msg) {
             }
         } else if (mText === "/close") {
             if (settings.open) {
-                chatStates[ADMIN] = CHAT_STATE_CLOSE_SEASON;
+                chatStates[ADMIN_ID] = CHAT_STATE_CLOSE_SEASON;
                 answer(cid, TEXT_QUEST_SEASON_CLOSE);
             } else {
                 answer(cid, ERROR_CLOSE_SEASON);
