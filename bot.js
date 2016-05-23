@@ -162,7 +162,7 @@ bot.on("text", function(msg) {
         //handle open user conversations
         if (chatStates[uid] === CHAT_STATE_LOGIN) {
             var order = {
-                "userId": cid,
+                "chatId": cid,
                 "userName": mUser,
                 "orderId": mDate,
                 "yandexLogin": mText,
@@ -225,7 +225,7 @@ bot.on("text", function(msg) {
                 for (var i in orders) {
                     orders[i].state = state;
                     if (orders[i].track) {
-                        answer(orders[i].userId, state);
+                        answer(orders[i].chatId, state);
                     }
                 }
                 delete chatStates[ADMIN];
@@ -236,7 +236,7 @@ bot.on("text", function(msg) {
             for (var i in orders) {
                 orders[i].state = mText;
                 if (orders[i].track) {
-                    answer(orders[i].userId, mText);
+                    answer(orders[i].chatId, mText);
                 }
             }
             delete chatStates[ADMIN];
@@ -424,7 +424,7 @@ bot.on("text", function(msg) {
             }
             if (order) {
                 if (msg) {
-                    answer(order.userId, msg);
+                    answer(order.chatId, msg);
                     answer(cid, TEXT_MESSAGE_DONE + '«' + msg + '»');
                 } else {
                     answer(cid, ERROR_DIRECT_MESSAGE_SENT.replace("%s", yid));
