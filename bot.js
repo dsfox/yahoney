@@ -100,128 +100,126 @@ bot.getMe().then(function(me) {
     console.log("And my username is @%s.", me.username);
 });
 
-//todo: switch all keys from messageUsr to messageUserId
-
 bot.on("text", function(msg) {
-    var messageChatId = msg.chat.id;
-    var messageText = msg.text;
-    var messageDate = msg.date;
-    var messageUsr = msg.from.username || msg.from.last_name;
-    var messageUserId = msg.from.id;
+    var cid = msg.chat.id;
+    var mText = msg.text;
+    var mDate = msg.date;
+    var mUser = msg.from.username || msg.from.last_name;
+    var uid = msg.from.id;
     var lastUser = null;
     var lastDate = 0;
     var fakeUser = false;
 
     //banned check
     Object.keys(blacklist).forEach(function(user) {
-        if (user === messageUsr) {
-            if ((messageDate - blacklist[user]) > banPeriod) {
-                delete blacklist[messageUsr];
+        if (user === uid) {
+            if ((mDate - blacklist[user]) > banPeriod) {
+                delete blacklist[uid];
                 //yep! no flush
             } else {
-                answer(messageChatId, ERROR_BANNED);
+                answer(cid, ERROR_BANNED);
                 return;
             }
         }
     });
 
     //ddos check
-    if (messageUsr === lastUser) {
-        if ((messageDate - lastDate) < ddosRange) {
-            if (!ddosUsers[messageUsr]) {
-                ddosUsers[messageUsr] = ddosPlank;
+    if (uid === lastUser) {
+        if ((mDate - lastDate) < ddosRange) {
+            if (!ddosUsers[uid]) {
+                ddosUsers[uid] = ddosPlank;
             } else {
-                ddosUsers[messageUsr]--;
-                if (ddosUsers[messageUsr] <= 0) {
-                    answer(messageChatId, ERROR_DDOS);
-                    blacklist[messageUsr] = messageDate;
+                ddosUsers[uid]--;
+                if (ddosUsers[uid] <= 0) {
+                    answer(cid, ERROR_DDOS);
+                    blacklist[uid] = mDate;
                     flush();
                     return;
                 }
             }
-        } else if (ddosUsers[messageUsr]) {
-            delete ddosUsers[messageUsr];
+        } else if (ddosUsers[uid]) {
+            delete ddosUsers[uid];
         }
     }
 
-    if (messageText.indexOf("//") == 0) {
-        messageText = messageText.substr(1);
+    if (mText.indexOf("//") == 0) {
+        mText = mText.substr(1);
         fakeUser = true;
     }
 
     //handle bot conversation reset
-    if (messageText === "/#") {
-        if (chatStates[messageUsr]) {
-            delete chatStates[messageUsr];
-            answer(messageChatId, TEXT_SORRY_DONE);
+    if (mText === "/#") {
+        if (chatStates[uid]) {
+            delete chatStates[uid];
+            answer(cid, TEXT_SORRY_DONE);
         } else {
-            answer(messageChatId, TEXT_SORRY_DENY);
+            answer(cid, TEXT_SORRY_DENY);
         }
         return;
     }
 
-    if (typeof chatStates[messageUsr] === "string") {
+    if (typeof chatStates[uid] === "string") {
         //handle open user conversations
-        if (chatStates[messageUsr] === CHAT_STATE_LOGIN) {
+        if (chatStates[uid] === CHAT_STATE_LOGIN) {
             var order = {
-                "userId": messageChatId,
-                "userName": messageUsr,
-                "orderId": messageDate,
-                "yandexLogin": messageText,
+                "userId": cid,
+                "userName": mUser,
+                "orderId": mDate,
+                "yandexLogin": mText,
                 "state": ORDER_STATE_DEFAULT,
                 "approved": false,
-                "timestamp": messageDate,
-                "laststamp": messageDate,
+                "timestamp": mDate,
+                "laststamp": mDate,
                 "realName": null,
                 "track": false,
                 "text": null,
                 "note": null //moderated text
             };
-            orders[messageUsr] = order;
-            chatStates[messageUsr] = CHAT_STATE_NAME;
-            answer(messageChatId, TEXT_QUEST_NAME);
-        } else if (chatStates[messageUsr] === CHAT_STATE_NAME) {
-            var realName = messageText.charAt(0).toUpperCase() + messageText.substr(1);
-            orders[messageUsr].realName = realName;
-            orders[messageUsr].laststamp = messageDate;
-            chatStates[messageUsr] = CHAT_STATE_ORDER;
-            answer(messageChatId, realName + TEXT_START_ORDER);
-        } else if (chatStates[messageUsr] === CHAT_STATE_ORDER) {
-            orders[messageUsr].text = messageText;
-            orders[messageUsr].laststamp = messageDate;
-            delete chatStates[messageUsr];
-            answer(messageChatId, TEXT_ORDER_SUCCESS);
+            orders[uid] = order;
+            chatStates[uid] = CHAT_STATE_NAME;
+            answer(cid, TEXT_QUEST_NAME);
+        } else if (chatStates[uid] === CHAT_STATE_NAME) {
+            var realName = mText.charAt(0).toUpperCase() + mText.substr(1);
+            orders[uid].realName = realName;
+            orders[uid].laststamp = mDate;
+            chatStates[uid] = CHAT_STATE_ORDER;
+            answer(cid, realName + TEXT_START_ORDER);
+        } else if (chatStates[uid] === CHAT_STATE_ORDER) {
+            orders[uid].text = mText;
+            orders[uid].laststamp = mDate;
+            delete chatStates[uid];
+            answer(cid, TEXT_ORDER_SUCCESS);
             flush();
-        } else if (chatStates[messageUsr] === CHAT_STATE_RESET) {
-            if (CHAT_CONVERSATION_YES.indexOf(messageText.toLowerCase()) >= 0) {
-                answer(messageChatId, TEXT_RESET_COMPLETE.replace("%s", orders[messageUsr].text));
-                delete orders[messageUsr];
-                delete chatStates[messageUsr];
+        } else if (chatStates[uid] === CHAT_STATE_RESET) {
+            if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
+                answer(cid, TEXT_RESET_COMPLETE.replace("%s", orders[uid].text));
+                delete orders[uid];
+                delete chatStates[uid];
                 flush();
-            } else if (CHAT_CONVERSATION_NO.indexOf(messageText.toLowerCase()) >= 0) {
-                answer(messageChatId, TEXT_OK);
-                delete chatStates[messageUsr];
+            } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
+                answer(cid, TEXT_OK);
+                delete chatStates[uid];
             } else {
-                answer(messageChatId, TEXT_WAT);
+                answer(cid, TEXT_WAT);
             }
-        } else if (chatStates[messageUsr] === CHAT_STATE_REORDER) {
-            if (CHAT_CONVERSATION_YES.indexOf(messageText.toLowerCase()) >= 0) {
-                chatStates[messageUsr] = CHAT_STATE_LOGIN;
-                answer(messageChatId, TEXT_QUEST_LOGIN);
-            } else if (CHAT_CONVERSATION_NO.indexOf(messageText.toLowerCase()) >= 0) {
-                answer(messageChatId, TEXT_OK);
-                delete chatStates[messageUsr];
+        } else if (chatStates[uid] === CHAT_STATE_REORDER) {
+            if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
+                chatStates[uid] = CHAT_STATE_LOGIN;
+                answer(cid, TEXT_QUEST_LOGIN);
+            } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
+                answer(cid, TEXT_OK);
+                delete chatStates[uid];
             }
         }
 
         //handle open admin conversations
         if (chatStates[ADMIN] === CHAT_STATE_SETSTATUS_QUEST) {
-            var n = Number(messageText);
+            var n = Number(mText);
             if (n === NaN || n < 0 || n >= orderSates.length) {
-                answer(messageChatId, ERROR_SETSTATUS_QUEST);
+                answer(cid, ERROR_SETSTATUS_QUEST);
             } else if (n == 0) {
                 chatStates[ADMIN] = CHAT_STATE_SETSTATUS_CUSTOM;
-                answer(messageChatId, TEXT_QUEST_SETSTATUS_CUSTOM);
+                answer(cid, TEXT_QUEST_SETSTATUS_CUSTOM);
             } else {
                 var state = orderSates[n];
                 for (var i in orders) {
@@ -231,21 +229,21 @@ bot.on("text", function(msg) {
                     }
                 }
                 delete chatStates[ADMIN];
-                answer(messageChatId, TEXT_QUEST_SETSTATUS_DONE + '«' + state + '»');
+                answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + state + '»');
                 flush();
             }
         } else if (chatStates[ADMIN] === CHAT_STATE_SETSTATUS_CUSTOM) {
             for (var i in orders) {
-                orders[i].state = messageText;
+                orders[i].state = mText;
                 if (orders[i].track) {
-                    answer(orders[i].userId, messageText);
+                    answer(orders[i].userId, mText);
                 }
             }
             delete chatStates[ADMIN];
-            answer(messageChatId, TEXT_QUEST_SETSTATUS_DONE + '«' + messageText + '»');
+            answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + mText + '»');
             flush();
         } else if (chatStates[ADMIN] === CHAT_STATE_CLOSE_SEASON) {
-            if (CHAT_CONVERSATION_YES.indexOf(messageText.toLowerCase()) >= 0) {
+            if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 backup();
                 orders = {};
                 chatStates = {}
@@ -253,114 +251,114 @@ bot.on("text", function(msg) {
                 settings.open = false;
                 flush();
                 delete chatStates[ADMIN];
-                answer(messageChatId, TEXT_SEASON_CLOSE);
-            } else if (CHAT_CONVERSATION_NO.indexOf(messageText.toLowerCase()) >= 0) {
+                answer(cid, TEXT_SEASON_CLOSE);
+            } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 delete chatStates[ADMIN];
-                answer(messageChatId, TEXT_OK);
+                answer(cid, TEXT_OK);
             } else {
-                answer(messageChatId, TEXT_WAT);
+                answer(cid, TEXT_WAT);
             }
         }
         return;
     }
 
-    if (messageChatId !== ADMIN_ID || fakeUser) { //handle new user commands
-        if (messageText === "/subscribe") {
-            if (settings.subscribers[messageUsr]) {
-                answer(messageChatId, ERROR_SUBSCRIBE);
+    if (cid !== ADMIN_ID || fakeUser) { //handle new user commands
+        if (mText === "/subscribe") {
+            if (settings.subscribers[uid]) {
+                answer(cid, ERROR_SUBSCRIBE);
             } else {
-                settings.subscribers[messageUsr] = { "date": new Date(messageDate), "chatId": messageChatId };
-                answer(messageChatId, TEXT_SUBSCRIBE_OK);
+                settings.subscribers[uid] = { "date": new Date(mDate), "chatId": cid };
+                answer(cid, TEXT_SUBSCRIBE_OK);
                 flush();
             }
-        } else if (messageText === "/unsubscribe") {
-            if (settings.subscribers[messageUsr]) {
-                delete settings.subscribers[messageUsr];
-                answer(messageChatId, TEXT_UNSUBSCRIBE_OK);
+        } else if (mText === "/unsubscribe") {
+            if (settings.subscribers[uid]) {
+                delete settings.subscribers[uid];
+                answer(cid, TEXT_UNSUBSCRIBE_OK);
                 flush();
             } else {
-                answer(messageChatId, ERROR_UNSUBSCRIBE);
+                answer(cid, ERROR_UNSUBSCRIBE);
             }
-        } else if (messageText === "/start") {
-            answer(messageChatId, TEXT_WELCOME);
-        } else if (messageText === "/test") {
-            answer(messageChatId, TEXT_TEST);
-        } else if (messageText === "/order") {
+        } else if (mText === "/start") {
+            answer(cid, TEXT_WELCOME);
+        } else if (mText === "/test") {
+            answer(cid, TEXT_TEST);
+        } else if (mText === "/order") {
             if (settings.open) {
-                if (orders[messageUsr]) {
-                    chatStates[messageUsr] = CHAT_STATE_REORDER;
-                    answer(messageChatId, TEXT_ORDER_EXIST.replace("%s", '«' + orders[messageUsr].text + '»'));
+                if (orders[uid]) {
+                    chatStates[uid] = CHAT_STATE_REORDER;
+                    answer(cid, TEXT_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
                 } else {
-                    chatStates[messageUsr] = CHAT_STATE_LOGIN;
-                    answer(messageChatId, TEXT_QUEST_LOGIN);
+                    chatStates[uid] = CHAT_STATE_LOGIN;
+                    answer(cid, TEXT_QUEST_LOGIN);
                 }
             } else {
-                answer(messageChatId, ERROR_SEASON_CLOSED);
+                answer(cid, ERROR_SEASON_CLOSED);
             }
-        } else if (messageText === "/track" || messageText === "/untrack") {
-            if (orders[messageUsr]) {
-                var enable = messageText === "/track";
+        } else if (mText === "/track" || mText === "/untrack") {
+            if (orders[uid]) {
+                var enable = mText === "/track";
                 for (var i in orders) {
-                    if (i === messageUsr) {
+                    if (i === uid) {
                         orders[i].track = enable;
-                        answer(messageChatId, enable ? TEXT_TRACK : TEXT_UNTRACK);
+                        answer(cid, enable ? TEXT_TRACK : TEXT_UNTRACK);
                     }
                 }
                 flush();
             } else {
-                answer(messageChatId, ERROR_NO_ORDERS);
+                answer(cid, ERROR_NO_ORDERS);
             }
-        } else if (messageText === "/status") {
-            if (orders[messageUsr]) {
-                answer(messageChatId, orders[messageUsr].state);
+        } else if (mText === "/status") {
+            if (orders[uid]) {
+                answer(cid, orders[uid].state);
             } else {
-                answer(messageChatId, ERROR_NO_ORDERS);
+                answer(cid, ERROR_NO_ORDERS);
             }
-        } else if (messageText === "/info") {
-            answer(messageChatId, TEXT_INFO);
-        } else if (messageText === "/view") {
-            if (orders[messageUsr]) {
-                answer(messageChatId, TEXT_VIEW_ORDER + '«' + orders[messageUsr].text + '»');
+        } else if (mText === "/info") {
+            answer(cid, TEXT_INFO);
+        } else if (mText === "/view") {
+            if (orders[uid]) {
+                answer(cid, TEXT_VIEW_ORDER + '«' + orders[uid].text + '»');
             } else {
-                answer(messageChatId, ERROR_NO_ORDERS);
+                answer(cid, ERROR_NO_ORDERS);
             }
-        } else if (messageText === "/reset") {
-            if (orders[messageUsr]) {
-                answer(messageChatId, TEXT_QEUST_RESET.replace("%s", '«' + orders[messageUsr].text + '»'));
-                chatStates[messageUsr] = CHAT_STATE_RESET;
+        } else if (mText === "/reset") {
+            if (orders[uid]) {
+                answer(cid, TEXT_QEUST_RESET.replace("%s", '«' + orders[uid].text + '»'));
+                chatStates[uid] = CHAT_STATE_RESET;
             } else {
-                answer(messageChatId, ERROR_NO_ORDERS);
+                answer(cid, ERROR_NO_ORDERS);
             }
         } else {
-            answerError(messageChatId);
+            answerError(cid);
         }
     } else { //handle ADMIN commands
-        if (messageText === "/subscribers") {
+        if (mText === "/subscribers") {
             var list = '';
             for (var i in settings.subscribers) {
                 list += i + ' : ' + settings.subscribers[i].date
             }
             if (list.length) {
-                answer(messageChatId, list);
+                answer(cid, list);
             } else {
-                answer(messageChatId, ERROR_EMPTY_LIST);
+                answer(cid, ERROR_EMPTY_LIST);
             }
-        } else if (messageText === "/info") {
-            answer(messageChatId, TEXT_ADMIN_INFO);
-        } else if (messageText === "/raw") {
-            answer(messageChatId, JSON.stringify(orders));
-        } else if (messageText == "/list") {
+        } else if (mText === "/info") {
+            answer(cid, TEXT_ADMIN_INFO);
+        } else if (mText === "/raw") {
+            answer(cid, JSON.stringify(orders));
+        } else if (mText == "/list") {
             var list = '';
             for (var i in orders) {
                 var row = i + ' . ' + orders[i].yandexLogin + ' . «' + orders[i].text + '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE) + ']\n\n';
                 list += row;
             }
             if (list.length) {
-                answer(messageChatId, list);
+                answer(cid, list);
             } else {
-                answer(messageChatId, ERROR_EMPTY_LIST);
+                answer(cid, ERROR_EMPTY_LIST);
             }
-        } else if (messageText === "/new") {
+        } else if (mText === "/new") {
             var list = '';
             for (var i in orders) {
                 if (!orders[i].approved) {
@@ -369,11 +367,11 @@ bot.on("text", function(msg) {
                 }
             }
             if (list.length) {
-                answer(messageChatId, list);
+                answer(cid, list);
             } else {
-                answer(messageChatId, ERROR_EMPTY_LIST);
+                answer(cid, ERROR_EMPTY_LIST);
             }
-        } else if (messageText === "/orders") {
+        } else if (mText === "/orders") {
             var list = '';
             for (var i in orders) {
                 if (orders[i].note) {
@@ -382,20 +380,20 @@ bot.on("text", function(msg) {
                 }
             }
             if (list.length) {
-                answer(messageChatId, list);
+                answer(cid, list);
             } else {
-                answer(messageChatId, ERROR_EMPTY_LIST);
+                answer(cid, ERROR_EMPTY_LIST);
             }
-        } else if (messageText === "/setstatus") {
+        } else if (mText === "/setstatus") {
             var msg = TEXT_QUEST_SETSTATUS + '\n';
             for (var i = 0; i < orderSates.length; i++) {
                 msg += i + " - " + orderSates[i] + '\n'
             }
-            chatStates[messageUsr] = CHAT_STATE_SETSTATUS_QUEST;
-            answer(messageChatId, msg);
-        } else if (messageText.indexOf("/approve") == 0) {
-            var yid = parseCmd(messageText)[0];
-            var note = parseCmd(messageText)[1];
+            chatStates[uid] = CHAT_STATE_SETSTATUS_QUEST;
+            answer(cid, msg);
+        } else if (mText.indexOf("/approve") == 0) {
+            var yid = parseCmd(mText)[0];
+            var note = parseCmd(mText)[1];
             var order;
             for (var i in orders) {
                 if (orders[i].yandexLogin === yid) {
@@ -407,17 +405,17 @@ bot.on("text", function(msg) {
                     order.note = note;
                     order.approved = true;
                     var msg = TEXT_APPROVE_DONE.replace("%s", yid) + ': ' + note;
-                    answer(messageChatId, msg);
+                    answer(cid, msg);
                     flush();
                 } else {
-                    answer(messageChatId, ERROR_APROOVE_NOTE.replace("%s", yid));
+                    answer(cid, ERROR_APROOVE_NOTE.replace("%s", yid));
                 }
             } else {
-                answer(messageChatId, ERROR_YID_NOT_FOUND.replace("%s", yid));
+                answer(cid, ERROR_YID_NOT_FOUND.replace("%s", yid));
             }
-        } else if (messageText.indexOf("/message") == 0) {
-            var yid = parseCmd(messageText)[0];
-            var msg = parseCmd(messageText)[1];
+        } else if (mText.indexOf("/message") == 0) {
+            var yid = parseCmd(mText)[0];
+            var msg = parseCmd(mText)[1];
             var order;
             for (var i in orders) {
                 if (orders[i].yandexLogin === yid) {
@@ -427,36 +425,36 @@ bot.on("text", function(msg) {
             if (order) {
                 if (msg) {
                     answer(order.userId, msg);
-                    answer(messageChatId, TEXT_MESSAGE_DONE + '«' + msg + '»');
+                    answer(cid, TEXT_MESSAGE_DONE + '«' + msg + '»');
                 } else {
-                    answer(messageChatId, ERROR_DIRECT_MESSAGE_SENT.replace("%s", yid));
+                    answer(cid, ERROR_DIRECT_MESSAGE_SENT.replace("%s", yid));
                 }
             } else {
-                answer(messageChatId, ERROR_YID_NOT_FOUND.replace("%s", yid));
+                answer(cid, ERROR_YID_NOT_FOUND.replace("%s", yid));
             }
-        } else if (messageText === "/open") {
+        } else if (mText === "/open") {
             if (!settings.open) {
                 settings.open = true;
                 for (var i in settings.subscribers) {
                     answer(settings.subscribers[i].chatId, TEXT_SEASON_OPEN_MESSAGE);
                 }
-                answer(messageChatId, TEXT_SEASON_OPEN);
+                answer(cid, TEXT_SEASON_OPEN);
                 flush();
             } else {
-                answer(messageChatId, ERROR_OPEN_SEASON);
+                answer(cid, ERROR_OPEN_SEASON);
             }
-        } else if (messageText === "/close") {
+        } else if (mText === "/close") {
             if (settings.open) {
                 chatStates[ADMIN] = CHAT_STATE_CLOSE_SEASON;
-                answer(messageChatId, TEXT_QUEST_SEASON_CLOSE);
+                answer(cid, TEXT_QUEST_SEASON_CLOSE);
             } else {
-                answer(messageChatId, ERROR_CLOSE_SEASON);
+                answer(cid, ERROR_CLOSE_SEASON);
             }
         }
     }
 
-    lastUser = messageUsr;
-    lastDate = messageDate;
+    lastUser = uid;
+    lastDate = mDate;
 
     console.log('UNKNOWN MSG: ', msg);
 });
