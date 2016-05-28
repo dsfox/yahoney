@@ -1,7 +1,0 @@
-{
-    "name": "Node.js yahoney app",
-    "description": "honey preorder for y-t@ users",
-    "repository": "https://github.com/dsfox/yahoney",
-    "logo": "http://node-js-sample.herokuapp.com/node.svg",
-    "keywords": ["node", "telegram", "bot", "yahoney"]
-}
