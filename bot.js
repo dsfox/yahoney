@@ -104,7 +104,7 @@ bot.on("text", function(msg) {
     var mText = msg.text;
     var mDate = msg.date;
     var mUser = msg.from.username || msg.from.last_name;
-    var uid = msg.from.id;
+    var uid = String(msg.from.id);
     var lastUser = null;
     var lastDate = 0;
     var fakeUser = false;
@@ -157,7 +157,9 @@ bot.on("text", function(msg) {
         return;
     }
 
-    typeof orders[uid] === "object" && orders[uid].laststamp = mDate;
+    if (typeof orders[uid] === "object") {
+        orders[uid].laststamp = mDate;
+    }
 
     if (typeof chatStates[uid] === "string") {
         //handle open user conversations
