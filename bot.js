@@ -271,7 +271,7 @@ bot.on("text", function(msg) {
             if (settings.subscribers[uid]) {
                 answer(cid, ERROR_SUBSCRIBE);
             } else {
-                settings.subscribers[uid] = { "date": new Date(mDate), "chatId": cid };
+                settings.subscribers[uid] = { "date": new Date(mDate), "chatId": cid, "user": mUser };
                 answer(cid, TEXT_SUBSCRIBE_OK);
                 flush();
             }
@@ -340,7 +340,7 @@ bot.on("text", function(msg) {
         if (mText === "/subscribers") {
             var list = '';
             for (var i in settings.subscribers) {
-                list += i + ' : ' + settings.subscribers[i].date
+                list += settings.subscribers[i].user + ' [' + i + ']' + ' : ' + settings.subscribers[i].date
             }
             if (list.length) {
                 answer(cid, list);
