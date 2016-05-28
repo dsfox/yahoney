@@ -50,13 +50,14 @@ const TEXT_QUEST_LOGIN = "Напишите Ваш логин на @yandex-team";
 const TEXT_QUEST_NAME = "Ok. А как Вас зовут?";
 const TEXT_START_ORDER = ", сколько литров и в каких банках? Если нужен мёд в сотах, то сколько рамок?";
 const TEXT_ORDER_SUCCESS = "Спасибо за заказ. Я напишу Вам когда мёд будет в офисе. Если хотите подписаться на уведомления о процессе доставки - напишите мне /track, отписаться - /untrack";
-const TEXT_ORDER_EXIST = "У Вас уже сть заказ: %s\nУдалить его? Будем делать новый?";
+const TEXT_ORDER_EXIST = "У Вас уже есть заказ: %s\nУдалить его? Будем делать новый?";
+const TEXT_ADMIN_ORDER_EXIST = "У него уже есть заказ %sУдалить его? Будем делать новый?";
 const TEXT_WELCOME = "Привет! Я медовый бот.\nСтоимость 1л мёда - 600р. Стоимость одной полной рамки с сотами - 1800р.\nДля общения со мной используйте команды:\n/start - простыня, которую вы сейчас читаете\n/subscribe - подписаться на открытие сезона. Мёд выкачивается всего два раза в год. Чтобы не пропустить очередной сезон - подпишитесь. Вы получите сообщение, как только dsfox@ соберется поехать за медом\n/order - диалог заказа.. У вас может быть только один активный заказ (per Telegram account). Если вы решили заказать еще - пишите еще раз /order с указанием всего, что Вам нужно\n/track - подписка на уведомления о том, где сейчас Ваш мёд\n/untrack - не будете получать никаких сообщений пока мёд не приедет в офис (default)\n/status - ну где там мой мёд?\n/info - немного информации про мёд и пасеку\n/view - посмотреть Ваш текущий заказ\n/reset - Удаляется Ваш заказ, стирается вся история нашего общения\n/# - Выход из любого диалога со мной. Следует использовать, если я хочу от Вас непонятного.";
 const TEXT_INFO = "Вы можете заказывать мёд в 1л-1.5л-2л-3л-банках. Стоимость 1л - 600р. Вы так же можете заказать рамку с сотами. Как правило, в полной рамке около 3л мёда ± 0.5л. Поэтому стоимость рамки - 1800р. Рамка вручается в целофановом пакете. Хранить её лучше в холодильнике. Мёд не портится, но очень привлекает всяких насекомых, в первую очередь ос и пчёл.\nПасека, мёд с которой Вы заказываете, находится здесь - https://yandex.ru/maps/-/CVTuJQ0u\nПыльцу для мёда пчёлы таскают с полевых цветов и близлежащих полей, на которых каждый год растут рандомные культурные растения. Мёд, выкачанный в июне - менее вязкий, более прозрачный, хуже кристаллизуется и пахнет пыльцой цветов. Августовский мёд более плотный, тёмный и быстрее начинает кристаллизоваться, даже при комнатной температуре.";
 const TEXT_TRACK = "Вы подписались на уведомления.";
 const TEXT_UNTRACK = "Вы отписались от уведомлений.";
 const TEXT_RESET_COMPLETE = "Ваш заказ «%s» успешно удален. У Вас сейчас нет заказов.";
-const TEXT_ADMIN_INFO = "/raw - вся база заказов в JSON\n/list - список заказов со статусами\n/new - новые (неподтвержденные заказы)\n/orders - список подтвержденных заказов\n/setstatus - обновить статус для всех заказов. Число от 1 до 7 или 0, чтобы ввести свою фразу\n/approve yandexLogin note - подтверждение заказа, где note - короткое понятное сообщение о заказе\n/message yandexLogin - отправить личное сообщение\n/subscribers - показывает список тех, кто подписался на открытие сезона (telegram username)\n/open - открытие сессии приема заказов\n/close - закрытие сессии приема заказов\n";
+const TEXT_ADMIN_INFO = "/raw - вся база заказов в JSON\n/list - список заказов со статусами\n/new - новые (неподтвержденные заказы)\n/orders - список подтвержденных заказов\n/setstatus - обновить статус для всех заказов. Число от 1 до 7 или 0, чтобы ввести свою фразу\n/approve yandexLogin note - подтверждение заказа, где note - короткое понятное сообщение о заказе\n/add login note - добавление произвольного заказа, где login и note - имя и заказ соответственно\n/message yandexLogin - отправить личное сообщение\n/subscribers - показывает список тех, кто подписался на открытие сезона (telegram username)\n/open - открытие сессии приема заказов\n/close - закрытие сессии приема заказов";
 const TEXT_QEUST_RESET = "Вы уверены, что хотите удалить свой текущий заказ?: %s";
 const TEXT_QUEST_SETSTATUS = "Какой статус установить для всех заказов?";
 const TEXT_QUEST_SETSTATUS_CUSTOM = "Хорошо, давай установим свой статус. Напиши его и я сразу же обновлю его для всех.";
@@ -165,20 +166,10 @@ bot.on("text", function(msg) {
         //handle open user conversations
         if (chatStates[uid] === CHAT_STATE_LOGIN) {
             var realName = orders[uid] ? orders[uid].realName : null;
-            var order = {
-                "chatId": cid,
-                "userName": mUser,
-                "orderId": mDate,
-                "yandexLogin": mText,
-                "state": ORDER_STATE_DEFAULT,
-                "approved": false,
-                "timestamp": mDate,
-                "laststamp": mDate,
-                "realName": realName || null,
-                "track": false,
-                "text": null,
-                "note": null //moderated text
-            };
+            var order = new Order(cid);
+            order.userName = mUser;
+            order.yandexLogin = mText;
+            order.realName = realName || null;
             orders[uid] = order;
             if (realName) {
                 chatStates[uid] = CHAT_STATE_ORDER;
@@ -396,8 +387,9 @@ bot.on("text", function(msg) {
             chatStates[uid] = CHAT_STATE_SETSTATUS_QUEST;
             answer(cid, msg);
         } else if (mText.indexOf("/approve") == 0) {
-            var yid = parseCmd(mText)[0];
-            var note = parseCmd(mText)[1];
+            var pText = parseCmd(mText);
+            var yid = pText[0];
+            var note = pText[1];
             var order;
             for (var i in orders) {
                 if (orders[i].yandexLogin === yid) {
@@ -418,8 +410,9 @@ bot.on("text", function(msg) {
                 answer(cid, ERROR_YID_NOT_FOUND.replace("%s", yid));
             }
         } else if (mText.indexOf("/message") == 0) {
-            var yid = parseCmd(mText)[0];
-            var msg = parseCmd(mText)[1];
+            var pText = parseCmd(mText);
+            var yid = pText[0];
+            var msg = pText[1];
             var order;
             for (var i in orders) {
                 if (orders[i].yandexLogin === yid) {
@@ -457,6 +450,25 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_CLOSE_SEASON);
             }
+        } else if (mText === "/add") {
+            var pText = parseCmd(mText);
+            var uid = pText[0];
+            var note = pText[1];
+            if (uid && note) {
+                var order = new Order(uid);
+                order.userName = uid;
+                order.yandexLogin = uid;
+                order.approved = true;
+                order.note = note;
+                if (!orders[uid]) {
+                    orders[uid] = order;
+                } else {
+                    //todo: нужен диалого обновления заказа
+                    //answer(cid, TEXT_ADMIN_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
+                }
+            } else {
+                //todo: здесь будет ошибка
+            }
         }
     }
 
@@ -465,6 +477,21 @@ bot.on("text", function(msg) {
 
     console.log('UNKNOWN MSG: ', msg);
 });
+
+function Order(cid) {
+    this.chatId = cid; //telegram user id
+    this.userName = null; //telegram given username || name
+    this.orderId = Math.random() + Date.now(); //id
+    this.yandexLogin = null; // Yandex team login
+    this.state = ORDER_STATE_DEFAULT; // initial roder state
+    this.approved = false; // not approved bu default
+    this.timestamp = Date.now(); // now
+    this.laststamp = Date.now(); // now
+    this.realName = null; // user provided name
+    this.track = false; //dont track by default
+    this.text = null; // user provided order message
+    this.note = null; // admin moderated order
+}
 
 function parseCmd(text) {
     var result = [];
