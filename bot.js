@@ -157,9 +157,12 @@ bot.on("text", function(msg) {
         return;
     }
 
+    typeof orders[uid] === "object" && orders[uid].laststamp = mDate;
+
     if (typeof chatStates[uid] === "string") {
         //handle open user conversations
         if (chatStates[uid] === CHAT_STATE_LOGIN) {
+            var realName = orders[uid] ? orders[uid].realName : null;
             var order = {
                 "chatId": cid,
                 "userName": mUser,
@@ -169,23 +172,26 @@ bot.on("text", function(msg) {
                 "approved": false,
                 "timestamp": mDate,
                 "laststamp": mDate,
-                "realName": null,
+                "realName": realName || null,
                 "track": false,
                 "text": null,
                 "note": null //moderated text
             };
             orders[uid] = order;
-            chatStates[uid] = CHAT_STATE_NAME;
-            answer(cid, TEXT_QUEST_NAME);
+            if (realName) {
+                chatStates[uid] = CHAT_STATE_ORDER;
+                answer(cid, realName + TEXT_START_ORDER);
+            } else {
+                chatStates[uid] = CHAT_STATE_NAME;
+                answer(cid, TEXT_QUEST_NAME);
+            }
         } else if (chatStates[uid] === CHAT_STATE_NAME) {
             var realName = mText.charAt(0).toUpperCase() + mText.substr(1);
             orders[uid].realName = realName;
-            orders[uid].laststamp = mDate;
             chatStates[uid] = CHAT_STATE_ORDER;
             answer(cid, realName + TEXT_START_ORDER);
         } else if (chatStates[uid] === CHAT_STATE_ORDER) {
             orders[uid].text = mText;
-            orders[uid].laststamp = mDate;
             delete chatStates[uid];
             answer(cid, TEXT_ORDER_SUCCESS);
             flush();
@@ -296,7 +302,7 @@ bot.on("text", function(msg) {
             }
         } else if (mText === "/track" || mText === "/untrack") {
             if (orders[uid]) {
-                var enable = mText === "/track";
+                var enable = (mText === "/track");
                 for (var i in orders) {
                     if (i === uid) {
                         orders[i].track = enable;
@@ -481,8 +487,8 @@ function flush() {
 
 function backup() {
     var d = (new Date(Date.now())).toLocaleDateString();
-    d = d.replace(new RegExp('\\.', 'g'), '_');//mac
-    d = d.replace(new RegExp('/', 'g'), '_');//unix
+    d = d.replace(new RegExp('\\.', 'g'), '_'); //mac
+    d = d.replace(new RegExp('/', 'g'), '_'); //unix
     fs.writeFileSync(FILE_ORDERS + '_' + d + '.backup', JSON.stringify(orders));
 }
 
