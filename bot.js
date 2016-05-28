@@ -443,6 +443,9 @@ bot.on("text", function(msg) {
                     answer(settings.subscribers[i].chatId, TEXT_SEASON_OPEN_MESSAGE);
                 }
                 answer(cid, TEXT_SEASON_OPEN);
+                orders = {};
+                chatStates = {};
+                blacklist = {};
                 flush();
             } else {
                 answer(cid, ERROR_OPEN_SEASON);
