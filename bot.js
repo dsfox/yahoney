@@ -252,9 +252,6 @@ bot.on("text", function(msg) {
         } else if (chatStates[ADMIN_ID] === CHAT_STATE_CLOSE_SEASON) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 backup();
-                orders = {};
-                chatStates = {}
-                blacklist = {};
                 settings.open = false;
                 flush();
                 delete chatStates[ADMIN_ID];
