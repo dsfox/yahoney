@@ -4,10 +4,11 @@ const FILE_CHAT_STATES = "chatstates.json";
 const FILE_BLACKLIST = "blacklist.json";
 const FILE_SETTINGS = "settings.json";
 
-const DEFAULT_SETTINGS = { "open": false, subscribers: {} };
+const DEFAULT_SETTINGS = { "open": false, subscribers: {}, talks: {} };
 
 const CHAT_STATE_ORDER = "order";
 const CHAT_STATE_REORDER = "reorder";
+const CHAT_STATE_ADMIN_REORDER = "adminreorder";
 const CHAT_STATE_LOGIN = "yandexlogin";
 const CHAT_STATE_NAME = "username";
 const CHAT_STATE_SETSTATUS_QUEST = "setstatus1";
@@ -42,6 +43,7 @@ const ERROR_SEASON_CLOSED = "Сезон приема закзазов закры
 const ERROR_SUBSCRIBE = "Вы уже подписаны на уведомления.";
 const ERROR_UNSUBSCRIBE = "Вы и так отписаны от уведомлений.";
 const ERROR_UNKONOWN_CMD = ["Это не похоже на одну из моих команд. Может Вы опечатались?", "Я очень простой бот. Я понимаю только ограниченый набор команд. Чтобы их посмотреть, напишите мне /start", "Я всего лишь бот :( если Вам нужно что-то обсудить - напишите или позвоните dsfox@. Я же понимаю только ограниченный набор команд.", "Что? Я не знаю такой команды :("];
+const ERROR_ADMIN_ORDER = "Не могу распарсить строчку заказа. Посмотри на неё еще раз. Всё ок?";
 
 const TEXT_OK = "Вот и хорошо ...";
 const TEXT_WAT = " А?";
@@ -50,8 +52,10 @@ const TEXT_QUEST_LOGIN = "Напишите Ваш логин на @yandex-team";
 const TEXT_QUEST_NAME = "Ok. А как Вас зовут?";
 const TEXT_START_ORDER = ", сколько литров и в каких банках? Если нужен мёд в сотах, то сколько рамок?";
 const TEXT_ORDER_SUCCESS = "Спасибо за заказ. Я напишу Вам когда мёд будет в офисе. Если хотите подписаться на уведомления о процессе доставки - напишите мне /track, отписаться - /untrack";
+const TEXT_ADMIN_ORDER_SUCCESS = "Заказ добавлен";
+const TEXT_ADMIN_REORDER_SUCCESS = "Заказ обновлен";
 const TEXT_ORDER_EXIST = "У Вас уже есть заказ: %s\nУдалить его? Будем делать новый?";
-const TEXT_ADMIN_ORDER_EXIST = "У него уже есть заказ %sУдалить его? Будем делать новый?";
+const TEXT_ADMIN_ORDER_EXIST = "У него уже есть заказ %s\nЗаменить на новый?";
 const TEXT_WELCOME = "Привет! Я медовый бот.\nСтоимость 1л мёда - 600р. Стоимость одной полной рамки с сотами - 1800р.\nДля общения со мной используйте команды:\n/start - простыня, которую вы сейчас читаете\n/subscribe - подписаться на открытие сезона. Мёд выкачивается всего два раза в год. Чтобы не пропустить очередной сезон - подпишитесь. Вы получите сообщение, как только dsfox@ соберется поехать за медом\n/order - диалог заказа.. У вас может быть только один активный заказ (per Telegram account). Если вы решили заказать еще - пишите еще раз /order с указанием всего, что Вам нужно\n/track - подписка на уведомления о том, где сейчас Ваш мёд\n/untrack - не будете получать никаких сообщений пока мёд не приедет в офис (default)\n/status - ну где там мой мёд?\n/info - немного информации про мёд и пасеку\n/view - посмотреть Ваш текущий заказ\n/reset - Удаляется Ваш заказ, стирается вся история нашего общения\n/# - Выход из любого диалога со мной. Следует использовать, если я хочу от Вас непонятного.";
 const TEXT_INFO = "Вы можете заказывать мёд в 1л-1.5л-2л-3л-банках. Стоимость 1л - 600р. Вы так же можете заказать рамку с сотами. Как правило, в полной рамке около 3л мёда ± 0.5л. Поэтому стоимость рамки - 1800р. Рамка вручается в целофановом пакете. Хранить её лучше в холодильнике. Мёд не портится, но очень привлекает всяких насекомых, в первую очередь ос и пчёл.\nПасека, мёд с которой Вы заказываете, находится здесь - https://yandex.ru/maps/-/CVTuJQ0u\nПыльцу для мёда пчёлы таскают с полевых цветов и близлежащих полей, на которых каждый год растут рандомные культурные растения. Мёд, выкачанный в июне - менее вязкий, более прозрачный, хуже кристаллизуется и пахнет пыльцой цветов. Августовский мёд более плотный, тёмный и быстрее начинает кристаллизоваться, даже при комнатной температуре.";
 const TEXT_TRACK = "Вы подписались на уведомления.";
@@ -253,6 +257,20 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, TEXT_WAT);
             }
+        } else if (chatStates[ADMIN_ID] === CHAT_STATE_ADMIN_REORDER) {
+            if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
+                var order = settings.talks[ADMIN_ID].order;
+                orders[order.chatId] = order;
+                answer(cid, TEXT_ADMIN_REORDER_SUCCESS);
+                delete chatStates[uid];
+                delete settings.talks[ADMIN_ID].order;
+                flush();
+            } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
+                answer(cid, TEXT_OK);
+                delete chatStates[uid];
+                delete settings.talks[ADMIN_ID].order;
+                flush();
+            }
         }
         return;
     }
@@ -345,7 +363,7 @@ bot.on("text", function(msg) {
         } else if (mText == "/list") {
             var list = '';
             for (var i in orders) {
-                var row = i + ' . ' + orders[i].yandexLogin + ' . «' + orders[i].text + '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE) + ']\n\n';
+                var row = i + ' . ' + orders[i].yandexLogin + ' . «' + orders[i].note + '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE) + ']\n\n';
                 list += row;
             }
             if (list.length) {
@@ -450,7 +468,7 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_CLOSE_SEASON);
             }
-        } else if (mText === "/add") {
+        } else if (mText.indexOf("/add") == 0) {
             var pText = parseCmd(mText);
             var uid = pText[0];
             var note = pText[1];
@@ -462,12 +480,16 @@ bot.on("text", function(msg) {
                 order.note = note;
                 if (!orders[uid]) {
                     orders[uid] = order;
+                    answer(cid, TEXT_ADMIN_ORDER_SUCCESS);
+                    flush();
                 } else {
-                    //todo: нужен диалого обновления заказа
-                    //answer(cid, TEXT_ADMIN_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
+                    settings.talks[ADMIN_ID] = { 'order': order };
+                    chatStates[ADMIN_ID] = CHAT_STATE_ADMIN_REORDER;
+                    answer(cid, TEXT_ADMIN_ORDER_EXIST.replace("%s", '«' + orders[uid].note + '»'));
+                    flush();
                 }
             } else {
-                //todo: здесь будет ошибка
+                answer(cid, ERROR_ADMIN_ORDER);
             }
         }
     }
@@ -475,7 +497,7 @@ bot.on("text", function(msg) {
     lastUser = uid;
     lastDate = mDate;
 
-    console.log('UNKNOWN MSG: ', msg);
+    console.log('MSG: ', msg);
 });
 
 function Order(cid) {
