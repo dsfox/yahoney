@@ -1,7 +1,6 @@
 const FILE_ORDERS = "orders.json";
 const FILE_TOKEN = "token.key";
 const FILE_CHAT_STATES = "chatstates.json";
-const FILE_BLACKLIST = "blacklist.json";
 const FILE_SETTINGS = "settings.json";
 
 const DEFAULT_SETTINGS = { "open": false, subscribers: {}, talks: {} };
@@ -30,8 +29,6 @@ const ORDER_STATE_DONE = "Мёд приехал. Проверьте рабочу
 const orderSates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
 
 const ERROR_NO_ORDERS = "У Вас нет заказов. Чтобы сделать заказ напишите мне /order"
-const ERROR_DDOS = "Похоже, что Вы - робот или человек, который пытается заспамить меня. Придется Вас забанить :(";
-const ERROR_BANNED = "Вы забанены :(";
 const ERROR_SETSTATUS_QUEST = "Нет такого статуса, давай попробуем еще раз.";
 const ERROR_YID_NOT_FOUND = "Никаких заказов от %s не поступало :(";
 const ERROR_APROOVE_NOTE = "Заказ %s найден, но к нему нет никакой заметки :( Давай попробуем еще раз.";
@@ -88,13 +85,7 @@ var fs = require("fs");
 var token = fs.existsSync(FILE_TOKEN) ? fs.readFileSync(FILE_TOKEN) : null;
 var orders = fs.existsSync(FILE_ORDERS) ? JSON.parse(fs.readFileSync(FILE_ORDERS)) : {};
 var chatStates = fs.existsSync(FILE_CHAT_STATES) ? JSON.parse(fs.readFileSync(FILE_CHAT_STATES)) : {};
-var blacklist = fs.existsSync(FILE_BLACKLIST) ? JSON.parse(fs.readFileSync(FILE_BLACKLIST)) : {};
 var settings = fs.existsSync(FILE_SETTINGS) ? JSON.parse(fs.readFileSync(FILE_SETTINGS)) : DEFAULT_SETTINGS;
-
-var ddosUsers = {};
-var ddosRange = 1000; //time between messages, in ms
-var ddosPlank = 8; //messages in a row
-var banPeriod = 1000 * 60 * 60 * 2; //2 hours
 
 var bot = new YaHoneyBot(token, { polling: true });
 
@@ -110,41 +101,7 @@ bot.on("text", function(msg) {
     var mDate = msg.date;
     var mUser = msg.from.username || msg.from.last_name;
     var uid = String(msg.from.id);
-    var lastUser = null;
-    var lastDate = 0;
     var fakeUser = false;
-
-    //banned check
-    Object.keys(blacklist).forEach(function(user) {
-        if (user === uid) {
-            if ((mDate - blacklist[user]) > banPeriod) {
-                delete blacklist[uid];
-                //yep! no flush
-            } else {
-                answer(cid, ERROR_BANNED);
-                return;
-            }
-        }
-    });
-
-    //ddos check
-    if (uid === lastUser) {
-        if ((mDate - lastDate) < ddosRange) {
-            if (!ddosUsers[uid]) {
-                ddosUsers[uid] = ddosPlank;
-            } else {
-                ddosUsers[uid]--;
-                if (ddosUsers[uid] <= 0) {
-                    answer(cid, ERROR_DDOS);
-                    blacklist[uid] = mDate;
-                    flush();
-                    return;
-                }
-            }
-        } else if (ddosUsers[uid]) {
-            delete ddosUsers[uid];
-        }
-    }
 
     if (mText.indexOf("//") == 0) {
         mText = mText.substr(1);
@@ -456,7 +413,6 @@ bot.on("text", function(msg) {
                 answer(cid, TEXT_SEASON_OPEN);
                 orders = {};
                 chatStates = {};
-                blacklist = {};
                 flush();
             } else {
                 answer(cid, ERROR_OPEN_SEASON);
@@ -493,9 +449,6 @@ bot.on("text", function(msg) {
             }
         }
     }
-
-    lastUser = uid;
-    lastDate = mDate;
 
     console.log('MSG: ', msg);
 });
