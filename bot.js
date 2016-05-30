@@ -153,13 +153,13 @@ bot.on("text", function(msg) {
             }
             delete chatStates[uid];
             answer(cid, TEXT_ORDER_SUCCESS);
-            flush();
+            save();
         } else if (chatStates[uid] === CHAT_STATE_RESET) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 answer(cid, TEXT_RESET_COMPLETE.replace("%s", orders[uid].text));
                 delete orders[uid];
                 delete chatStates[uid];
-                flush();
+                save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 answer(cid, TEXT_OK);
                 delete chatStates[uid];
@@ -194,7 +194,7 @@ bot.on("text", function(msg) {
                 }
                 delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + state + '»');
-                flush();
+                save();
             }
         } else if (chatStates[ADMIN_ID] === CHAT_STATE_SETSTATUS_CUSTOM) {
             for (var i in orders) {
@@ -205,14 +205,14 @@ bot.on("text", function(msg) {
             }
             delete chatStates[ADMIN_ID];
             answer(cid, TEXT_QUEST_SETSTATUS_DONE + '«' + mText + '»');
-            flush();
+            save();
         } else if (chatStates[ADMIN_ID] === CHAT_STATE_CLOSE_SEASON) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 backup();
                 settings.open = false;
                 delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_SEASON_CLOSE);
-                flush();
+                save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_OK);
@@ -226,12 +226,12 @@ bot.on("text", function(msg) {
                 answer(cid, TEXT_ADMIN_REORDER_SUCCESS);
                 delete chatStates[uid];
                 delete settings.talks[ADMIN_ID].order;
-                flush();
+                save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 answer(cid, TEXT_OK);
                 delete chatStates[uid];
                 delete settings.talks[ADMIN_ID].order;
-                flush();
+                save();
             }
         }
         return;
@@ -244,13 +244,13 @@ bot.on("text", function(msg) {
             } else {
                 settings.subscribers[uid] = { "date": new Date(mDate), "chatId": cid, "user": mUser };
                 answer(cid, TEXT_SUBSCRIBE_OK);
-                flush();
+                save();
             }
         } else if (mText === "/unsubscribe") {
             if (settings.subscribers[uid]) {
                 delete settings.subscribers[uid];
                 answer(cid, TEXT_UNSUBSCRIBE_OK);
-                flush();
+                save();
             } else {
                 answer(cid, ERROR_UNSUBSCRIBE);
             }
@@ -287,7 +287,7 @@ bot.on("text", function(msg) {
                         answer(cid, enable ? TEXT_TRACK : TEXT_UNTRACK);
                     }
                 }
-                flush();
+                save();
             } else {
                 answer(cid, ERROR_NO_ORDERS);
             }
@@ -390,7 +390,7 @@ bot.on("text", function(msg) {
                     order.approved = true;
                     var msg = TEXT_APPROVE_DONE.replace("%s", yid) + ': ' + note;
                     answer(cid, msg);
-                    flush();
+                    save();
                 } else {
                     answer(cid, ERROR_APROOVE_NOTE.replace("%s", yid));
                 }
@@ -426,7 +426,7 @@ bot.on("text", function(msg) {
                 answer(cid, TEXT_SEASON_OPEN);
                 orders = {};
                 chatStates = {};
-                flush();
+                save();
             } else {
                 answer(cid, ERROR_OPEN_SEASON);
             }
@@ -450,12 +450,12 @@ bot.on("text", function(msg) {
                 if (!orders[uid]) {
                     orders[uid] = order;
                     answer(cid, TEXT_ADMIN_ORDER_SUCCESS);
-                    flush();
+                    save();
                 } else {
                     settings.talks[ADMIN_ID] = { 'order': order };
                     chatStates[ADMIN_ID] = CHAT_STATE_ADMIN_REORDER;
                     answer(cid, TEXT_ADMIN_ORDER_EXIST.replace("%s", '«' + orders[uid].note + '»'));
-                    flush();
+                    save();
                 }
             } else {
                 answer(cid, ERROR_ADMIN_ORDER);
@@ -496,7 +496,7 @@ function fsError(err) {
     }
 }
 
-function flush() {
+function save() {
     fs.writeFile(FILE_ORDERS, JSON.stringify(orders), fsError);
     fs.writeFile(FILE_CHAT_STATES, JSON.stringify(chatStates), fsError);
     fs.writeFile(FILE_SETTINGS, JSON.stringify(settings), fsError);
