@@ -3,7 +3,7 @@ const FILE_TOKEN = "token.key";
 const FILE_CHAT_STATES = "chatstates.json";
 const FILE_SETTINGS = "settings.json";
 
-const DEFAULT_SETTINGS = { "open": false, subscribers: {}, talks: {} };
+const DEFAULT_SETTINGS = { "open": false, subscribers: {}, talks: {}, users: {} };
 
 const CHAT_STATE_ORDER = "order";
 const CHAT_STATE_REORDER = "reorder";
@@ -130,7 +130,7 @@ bot.on("text", function(msg) {
             var order = new Order(cid);
             order.userName = mUser;
             order.yandexLogin = mText;
-            order.realName = realName || null;
+            order.realName = realName;
             orders[uid] = order;
             if (realName) {
                 chatStates[uid] = CHAT_STATE_ORDER;
@@ -146,6 +146,11 @@ bot.on("text", function(msg) {
             answer(cid, realName + TEXT_START_ORDER);
         } else if (chatStates[uid] === CHAT_STATE_ORDER) {
             orders[uid].text = mText;
+            settings.users[uid] = {
+                'yandexLogin': orders[uid].yandexLogin,
+                'realName': orders[uid].realName,
+                'userName': orders[uid].userName
+            }
             delete chatStates[uid];
             answer(cid, TEXT_ORDER_SUCCESS);
             flush();
@@ -259,8 +264,18 @@ bot.on("text", function(msg) {
                     chatStates[uid] = CHAT_STATE_REORDER;
                     answer(cid, TEXT_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
                 } else {
-                    chatStates[uid] = CHAT_STATE_LOGIN;
-                    answer(cid, TEXT_QUEST_LOGIN);
+                    if (settigs.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
+                        var order = new Order(cid);
+                        order.userName = mUser;
+                        order.yandexLogin = settigs.users[uid].yandexLogin;
+                        order.realName = settigs.users[uid].realName;
+                        orders[uid] = order;
+                        chatStates[uid] = CHAT_STATE_ORDER;
+                        answer(cid, settigs.users[uid].realName + TEXT_START_ORDER);
+                    } else {
+                        chatStates[uid] = CHAT_STATE_LOGIN;
+                        answer(cid, TEXT_QUEST_LOGIN);
+                    }
                 }
             } else {
                 answer(cid, ERROR_SEASON_CLOSED);
