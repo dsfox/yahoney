@@ -210,9 +210,9 @@ bot.on("text", function(msg) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
                 backup();
                 settings.open = false;
-                flush();
                 delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_SEASON_CLOSE);
+                flush();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 delete chatStates[ADMIN_ID];
                 answer(cid, TEXT_OK);
@@ -263,19 +263,17 @@ bot.on("text", function(msg) {
                 if (orders[uid]) {
                     chatStates[uid] = CHAT_STATE_REORDER;
                     answer(cid, TEXT_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
+                } else if (settigs.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
+                    var order = new Order(cid);
+                    order.userName = mUser;
+                    order.yandexLogin = settigs.users[uid].yandexLogin;
+                    order.realName = settigs.users[uid].realName;
+                    orders[uid] = order;
+                    chatStates[uid] = CHAT_STATE_ORDER;
+                    answer(cid, settigs.users[uid].realName + TEXT_START_ORDER);
                 } else {
-                    if (settigs.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
-                        var order = new Order(cid);
-                        order.userName = mUser;
-                        order.yandexLogin = settigs.users[uid].yandexLogin;
-                        order.realName = settigs.users[uid].realName;
-                        orders[uid] = order;
-                        chatStates[uid] = CHAT_STATE_ORDER;
-                        answer(cid, settigs.users[uid].realName + TEXT_START_ORDER);
-                    } else {
-                        chatStates[uid] = CHAT_STATE_LOGIN;
-                        answer(cid, TEXT_QUEST_LOGIN);
-                    }
+                    chatStates[uid] = CHAT_STATE_LOGIN;
+                    answer(cid, TEXT_QUEST_LOGIN);
                 }
             } else {
                 answer(cid, ERROR_SEASON_CLOSED);
@@ -473,7 +471,7 @@ function Order(cid) {
     this.userName = null; //telegram given username || name
     this.orderId = Math.random() + Date.now(); //id
     this.yandexLogin = null; // Yandex team login
-    this.state = ORDER_STATE_DEFAULT; // initial roder state
+    this.state = ORDER_STATE_DEFAULT; // initial order state
     this.approved = false; // not approved bu default
     this.timestamp = Date.now(); // now
     this.laststamp = Date.now(); // now
