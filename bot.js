@@ -15,6 +15,8 @@ const CHAT_STATE_SETSTATUS_CUSTOM = "setstatus2";
 const CHAT_STATE_CLOSE_SEASON = "seasonclose";
 const CHAT_STATE_RESET = "orderreset";
 
+const PRIVATE_CHAT_STATE_WAIT_FOR_ANSWER = "privateanswer";
+
 const CHAT_CONVERSATION_YES = ["y", "yes", "ok", "ок", "да", "д", "хорошо", "yep", "ага"];
 const CHAT_CONVERSATION_NO = ["n", "no", "not", "нет", "не", "н", "", " ", "nope"];
 
@@ -42,7 +44,7 @@ const ERROR_UNSUBSCRIBE = "Вы и так отписаны от уведомле
 const ERROR_UNKONOWN_CMD = ["Это не похоже на одну из моих команд. Может Вы опечатались?", "Я очень простой бот. Я понимаю только ограниченый набор команд. Чтобы их посмотреть, напишите мне /start", "Я всего лишь бот :( если Вам нужно что-то обсудить - напишите или позвоните dsfox@. Я же понимаю только ограниченный набор команд.", "Что? Я не знаю такой команды :("];
 const ERROR_ADMIN_ORDER = "Не могу распарсить строчку заказа. Посмотри на неё еще раз. Всё ок?";
 
-const TEXT_OK = "Вот и хорошо ...";
+const TEXT_DONE = "Вот и хорошо ...";
 const TEXT_WAT = " А?";
 const TEXT_TEST = "мёду ннннада?";
 const TEXT_QUEST_LOGIN = "Напишите Ваш логин на @yandex-team";
@@ -161,7 +163,7 @@ bot.on("text", function(msg) {
                 delete chatStates[uid];
                 save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
-                answer(cid, TEXT_OK);
+                answer(cid, TEXT_DONE);
                 delete chatStates[uid];
             } else {
                 answer(cid, TEXT_WAT);
@@ -171,7 +173,7 @@ bot.on("text", function(msg) {
                 chatStates[uid] = CHAT_STATE_LOGIN;
                 answer(cid, TEXT_QUEST_LOGIN);
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
-                answer(cid, TEXT_OK);
+                answer(cid, TEXT_DONE);
                 delete chatStates[uid];
             }
         }
@@ -190,6 +192,7 @@ bot.on("text", function(msg) {
                     orders[i].state = state;
                     if (orders[i].track) {
                         answer(orders[i].chatId, state);
+                        settings.talks[orders[i].chatId] = { 'chatState': PRIVATE_CHAT_STATE_WAIT_FOR_ANSWER };
                     }
                 }
                 delete chatStates[ADMIN_ID];
@@ -215,7 +218,7 @@ bot.on("text", function(msg) {
                 save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
                 delete chatStates[ADMIN_ID];
-                answer(cid, TEXT_OK);
+                answer(cid, TEXT_DONE);
             } else {
                 answer(cid, TEXT_WAT);
             }
@@ -228,7 +231,7 @@ bot.on("text", function(msg) {
                 delete settings.talks[ADMIN_ID].order;
                 save();
             } else if (CHAT_CONVERSATION_NO.indexOf(mText.toLowerCase()) >= 0) {
-                answer(cid, TEXT_OK);
+                answer(cid, TEXT_DONE);
                 delete chatStates[uid];
                 delete settings.talks[ADMIN_ID].order;
                 save();
@@ -312,6 +315,11 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_NO_ORDERS);
             }
+        } else if (settings.talks[uid].chatState === PRIVATE_CHAT_STATE_WAIT_FOR_ANSWER) { //silent action
+            delete settings.talks[uid].chatState;
+            if (orders[uid]) {
+                orders[uid].privateAnswer = mText;
+            }
         } else {
             answerError(cid);
         }
@@ -333,7 +341,14 @@ bot.on("text", function(msg) {
         } else if (mText == "/list") {
             var list = '';
             for (var i in orders) {
-                var row = i + ' . ' + orders[i].yandexLogin + ' . «' + orders[i].note + '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE) + ']\n\n';
+                var row = orders[i].yandexLogin;
+                row += ' . «' + orders[i].note;
+                row += '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE);
+                row += '] ';
+                if (orders[i].privateAnswer) {
+                    row += 'private message:' + orders[i].privateAnswer;
+                }
+                row += '\n\n';
                 list += row;
             }
             if (list.length) {
