@@ -78,11 +78,14 @@ const TEXT_SORRY_DENY = "У меня все хорошо. Нет никакой 
 const TEXT_SUBSCRIBE_OK = "Вы подписались на уведомления об открытии сезона.";
 const TEXT_UNSUBSCRIBE_OK = "Вы отписались от уведомлений";
 const TEXT_VIEW_ORDER = "Ваш заказ: ";
+const TEXT_NEW_ORDERS = "Появились новые заказы:\n";
 
 const ADMIN_ID = 104410529; //dsfox@
+const CHECK_ORDERS_INTERVAL = 1000 * 60 * 60 * 6; //check orders every 6 hours
 
 var YaHoneyBot = require("node-telegram-bot-api");
 var fs = require("fs");
+var checkTimer = null;
 
 var token = fs.existsSync(FILE_TOKEN) ? fs.readFileSync(FILE_TOKEN) : null;
 var orders = fs.existsSync(FILE_ORDERS) ? JSON.parse(fs.readFileSync(FILE_ORDERS)) : {};
@@ -155,6 +158,9 @@ bot.on("text", function(msg) {
             }
             delete chatStates[uid];
             answer(cid, TEXT_ORDER_SUCCESS);
+            if (!checkTimer) {
+                checkTimer = setTimeout(checkOrders, CHECK_ORDERS_INTERVAL);
+            }
             save();
         } else if (chatStates[uid] === CHAT_STATE_RESET) {
             if (CHAT_CONVERSATION_YES.indexOf(mText.toLowerCase()) >= 0) {
@@ -530,4 +536,23 @@ function answer(aChatId, aMessage) {
 
 function answerError(chatId) {
     answer(chatId, ERROR_UNKONOWN_CMD[Math.floor(Math.random() * (ERROR_UNKONOWN_CMD.length))]);
+}
+
+function checkOrders() {
+    var now = Date.now();
+    var found = false;
+    var msg = TEXT_NEW_ORDERS;
+    for (var i in orders) {
+        if (i && i.text && parseInt(i.laststamp) > now && !i.approved) {
+            i.laststamp = now;
+            !found ? found = true : null;
+            msg += i.yandexLogin;
+            msg += ' : ' + i.text;
+        }
+    }
+    if (found) {
+        save();
+        answer(ADMIN_ID, msg);
+    }
+    checkTimer = null;
 }
