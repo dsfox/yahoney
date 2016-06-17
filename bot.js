@@ -272,7 +272,7 @@ bot.on("text", function(msg) {
                 if (orders[uid]) {
                     chatStates[uid] = CHAT_STATE_REORDER;
                     answer(cid, TEXT_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
-                } else if (settigs.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
+                } else if (settings.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
                     var order = new Order(cid);
                     order.userName = mUser;
                     order.yandexLogin = settigs.users[uid].yandexLogin;
