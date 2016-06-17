@@ -134,7 +134,7 @@ bot.on("text", function(msg) {
             var realName = orders[uid] ? orders[uid].realName : null;
             var order = new Order(cid);
             order.userName = mUser;
-            order.yandexLogin = mText;
+            order.yandexLogin = yFilter(mText);
             order.realName = realName;
             orders[uid] = order;
             if (realName) {
@@ -272,14 +272,14 @@ bot.on("text", function(msg) {
                 if (orders[uid]) {
                     chatStates[uid] = CHAT_STATE_REORDER;
                     answer(cid, TEXT_ORDER_EXIST.replace("%s", '«' + orders[uid].text + '»'));
-                } else if (settings.users[uid] && settigs.users[uid].yandexLogin && settigs.users[uid].realName) { //known user
+                } else if (settings.users[uid] && settings.users[uid].yandexLogin && settings.users[uid].realName) { //known user
                     var order = new Order(cid);
                     order.userName = mUser;
-                    order.yandexLogin = settigs.users[uid].yandexLogin;
-                    order.realName = settigs.users[uid].realName;
+                    order.yandexLogin = settings.users[uid].yandexLogin;
+                    order.realName = settings.users[uid].realName;
                     orders[uid] = order;
                     chatStates[uid] = CHAT_STATE_ORDER;
-                    answer(cid, settigs.users[uid].realName + TEXT_START_ORDER);
+                    answer(cid, settings.users[uid].realName + TEXT_START_ORDER);
                 } else {
                     chatStates[uid] = CHAT_STATE_LOGIN;
                     answer(cid, TEXT_QUEST_LOGIN);
@@ -347,14 +347,14 @@ bot.on("text", function(msg) {
         } else if (mText == "/list") {
             var list = '';
             for (var i in orders) {
-                var row = orders[i].yandexLogin;
-                row += ' . «' + orders[i].note;
-                row += '» . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE);
+                var row = orders[i].note;
+                row += ' . ' + orders[i].yandexLogin
+                row += ' . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE);
                 row += '] ';
                 if (orders[i].privateAnswer) {
                     row += 'private message:' + orders[i].privateAnswer;
                 }
-                row += '\n\n';
+                row += '\n';
                 list += row;
             }
             if (list.length) {
@@ -536,6 +536,21 @@ function answer(aChatId, aMessage) {
 
 function answerError(chatId) {
     answer(chatId, ERROR_UNKONOWN_CMD[Math.floor(Math.random() * (ERROR_UNKONOWN_CMD.length))]);
+}
+
+function yFilter(login) {
+    var i = login.indexOf('@');
+    if (i != -1) {
+        var before = login.substr(0, i);
+        var after = login.substr(i + 1);
+        if (before.length) {
+            return before;
+        }
+        if (after.length) {
+            return after;
+        }
+    }
+    return login;
 }
 
 function checkOrders() {
