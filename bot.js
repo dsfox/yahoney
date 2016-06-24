@@ -108,6 +108,8 @@ bot.on("text", function(msg) {
     var uid = String(msg.from.id);
     var fakeUser = false;
 
+    console.log('MSG: ', msg);
+
     if (mText.indexOf("//") == 0) {
         mText = mText.substr(1);
         fakeUser = true;
@@ -483,8 +485,6 @@ bot.on("text", function(msg) {
             }
         }
     }
-
-    console.log('MSG: ', msg);
 });
 
 function Order(cid) {
