@@ -321,7 +321,7 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_NO_ORDERS);
             }
-        } else if (settings.talks[uid].chatState === PRIVATE_CHAT_STATE_WAIT_FOR_ANSWER) { //silent action
+        } else if (settings.talks[uid] && settings.talks[uid].chatState === PRIVATE_CHAT_STATE_WAIT_FOR_ANSWER) { //silent action
             delete settings.talks[uid].chatState;
             if (orders[uid]) {
                 orders[uid].privateAnswer = mText;
@@ -349,7 +349,7 @@ bot.on("text", function(msg) {
             for (var i in orders) {
                 var row = orders[i].note;
                 row += ' . ' + orders[i].yandexLogin
-                row += ' . [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE);
+                row += ' [' + (orders[i].approved ? TEXT_APPROVED_TRUE : TEXT_APPROVED_FALSE);
                 row += '] ';
                 if (orders[i].privateAnswer) {
                     row += 'private message:' + orders[i].privateAnswer;
