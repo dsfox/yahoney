@@ -21,13 +21,13 @@ const CHAT_CONVERSATION_YES = ["y", "yes", "ok", "ок", "да", "д", "хоро
 const CHAT_CONVERSATION_NO = ["n", "no", "not", "нет", "не", "н", "", " ", "nope"];
 
 const ORDER_STATE_CUSTOM = "Произвольный текст, который будет выставлен как текущий статус для всех заказов.";
-const ORDER_STATE_DEFAULT = "Мёд еще в ульях, идут напряженные переговоры с пчелиными профсоюзами."; //#1
-const ORDER_STATE_START = "Идут бои за рамки с сотами, мёд выкачивается, пчелы кусаются, с нашей стороны пока без потерь."; //#2
-const ORDER_STATE_INPROGRESS = "Рамки уже отобраны и ждут погрузки, мёд разливается по банкам."; //#3
-const ORDER_STATE_DELIVERY_START = "Всё упаковано и аккуратно разложено в багажнике. Завтра мёд поедет в Москву."; //#4
-const ORDER_STATE_DELIVERY_M4 = "Ваш мёд в багажнике машины несется по трассе М4"; //#5
-const ORDER_STATE_DELIVERY_FINISH = "Мёд в Москве. В ближайшие рабочие дни будет в офисе"; //#6
-const ORDER_STATE_DONE = "Мёд приехал. Проверьте рабочую почту, dsfox@ наверняка уже написал Вам письмо."; //#7
+const ORDER_STATE_DEFAULT = "Мёд еще в ульях, идут напряженные переговоры с пчелиными профсоюзами.";
+const ORDER_STATE_START = "Идут бои за рамки с сотами, мёд выкачивается, пчелы кусаются, с нашей стороны пока без потерь.";
+const ORDER_STATE_INPROGRESS = "Рамки уже отобраны и ждут погрузки, мёд разливается по банкам.";
+const ORDER_STATE_DELIVERY_START = "Всё упаковано и аккуратно разложено в багажнике. Завтра мёд поедет в Москву.";
+const ORDER_STATE_DELIVERY_M4 = "Ваш мёд в багажнике машины несется по трассе М4";
+const ORDER_STATE_DELIVERY_FINISH = "Мёд в Москве. В ближайшие рабочие дни будет в офисе";
+const ORDER_STATE_DONE = "Мёд приехал. Проверьте рабочую почту, dsfox@ наверняка уже написал Вам письмо.";
 const orderSates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
 
 const ERROR_ORDER_REMOVE = "Заказ не найден";
@@ -191,7 +191,7 @@ bot.on("text", function(msg) {
         //handle open admin conversations
         if (chatStates[ADMIN_ID] === CHAT_STATE_SETSTATUS_QUEST) {
             var n = Number(mText);
-            if (n === NaN || n < 0 || n >= orderSates.length) {
+            if (Number(n) === NaN || n < 0 || n >= orderSates.length) {
                 answer(cid, ERROR_SETSTATUS_QUEST);
             } else if (n == 0) {
                 chatStates[ADMIN_ID] = CHAT_STATE_SETSTATUS_CUSTOM;
