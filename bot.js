@@ -267,11 +267,11 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_UNSUBSCRIBE);
             }
-        } else if (mText === "/start") {
+        } else if (mText === "/start" || mText === "/help") {
             answer(cid, TEXT_WELCOME);
         } else if (mText === "/test") {
             answer(cid, TEXT_TEST);
-        } else if (mText === "/order") {
+        } else if (mText.indexOf("/order") == 0) {
             if (settings.open) {
                 if (orders[uid]) {
                     chatStates[uid] = CHAT_STATE_REORDER;
