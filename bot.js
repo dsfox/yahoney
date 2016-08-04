@@ -451,11 +451,16 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_YID_NOT_FOUND.replace("%s", yid));
             }
-        } else if (mText === "/open") {
+        } else if (mText.indexOf("/open") == 0) {
             if (!settings.open) {
+                var cmdMsg = mText.charAt(5) == " " ? mText.substr(6) : null;
+                var openMsg = TEXT_SEASON_OPEN_MESSAGE;
+                if (cmdMsg && cmdMsg.length > 10) { //at least few words
+                    openMsg += "\n" + cmdMsg;
+                }
                 settings.open = true;
                 for (var i in settings.subscribers) {
-                    answer(settings.subscribers[i].chatId, TEXT_SEASON_OPEN_MESSAGE);
+                    answer(settings.subscribers[i].chatId, openMsg);
                 }
                 answer(cid, TEXT_SEASON_OPEN);
                 orders = {};
