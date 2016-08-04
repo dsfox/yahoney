@@ -336,8 +336,10 @@ bot.on("text", function(msg) {
     } else { //handle ADMIN commands
         if (mText === "/subscribers") {
             var list = '';
+            var k = 0;
             for (var i in settings.subscribers) {
-                list += settings.subscribers[i].user + "\n";
+                k++;
+                list += k + ". " + settings.subscribers[i].user + "\n";
             }
             if (list.length) {
                 answer(cid, list);
