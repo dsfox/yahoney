@@ -337,7 +337,7 @@ bot.on("text", function(msg) {
         if (mText === "/subscribers") {
             var list = '';
             for (var i in settings.subscribers) {
-                list += settings.subscribers[i].user + ' [' + i + ']' + ' : ' + settings.subscribers[i].date
+                list += settings.subscribers[i].user + "\n";
             }
             if (list.length) {
                 answer(cid, list);
