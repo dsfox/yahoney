@@ -28,7 +28,7 @@ const ORDER_STATE_DELIVERY_START = "Всё упаковано и аккурат�
 const ORDER_STATE_DELIVERY_M4 = "Ваш мёд в багажнике машины несется по трассе М4";
 const ORDER_STATE_DELIVERY_FINISH = "Мёд в Москве. В ближайшие рабочие дни будет в офисе";
 const ORDER_STATE_DONE = "Мёд приехал. Проверьте рабочую почту, @dsfox наверняка уже написал Вам письмо.";
-const orderSates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
+const orderSates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
 
 const ERROR_ORDER_REMOVE = "Заказ не найден";
 const ERROR_NO_ORDERS = "У Вас нет заказов. Чтобы сделать заказ напишите мне /order"
@@ -267,7 +267,7 @@ bot.on("text", function(msg) {
             } else {
                 answer(cid, ERROR_UNSUBSCRIBE);
             }
-        } else if (mText === "/start" || mText === "/help") {
+        } else if (mText.indexOf("/start") == 0 || mText.indexOf("/help") == 0) {
             answer(cid, TEXT_WELCOME);
         } else if (mText === "/test") {
             answer(cid, TEXT_TEST);
