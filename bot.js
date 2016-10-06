@@ -28,7 +28,7 @@ const ORDER_STATE_DELIVERY_START = "Всё упаковано и аккурат�
 const ORDER_STATE_DELIVERY_M4 = "Ваш мёд в багажнике машины несется по трассе М4";
 const ORDER_STATE_DELIVERY_FINISH = "Мёд в Москве. В ближайшие рабочие дни будет в офисе";
 const ORDER_STATE_DONE = "Мёд приехал. Проверьте рабочую почту, @dsfox наверняка уже написал Вам письмо.";
-const orderSates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
+const orderStates = [ORDER_STATE_CUSTOM, ORDER_STATE_DEFAULT, ORDER_STATE_START, ORDER_STATE_INPROGRESS, ORDER_STATE_DELIVERY_START, ORDER_STATE_DELIVERY_M4, ORDER_STATE_DELIVERY_FINISH, ORDER_STATE_DONE];
 
 const ERROR_ORDER_REMOVE = "Заказ не найден";
 const ERROR_NO_ORDERS = "У Вас нет заказов. Чтобы сделать заказ напишите мне /order"
@@ -191,13 +191,13 @@ bot.on("text", function(msg) {
         //handle open admin conversations
         if (chatStates[ADMIN_ID] === CHAT_STATE_SETSTATUS_QUEST) {
             var n = Number(mText);
-            if (Number(n) === NaN || n < 0 || n >= orderSates.length) {
+            if (Number(n) === NaN || n < 0 || n >= orderStates.length) {
                 answer(cid, ERROR_SETSTATUS_QUEST);
             } else if (n == 0) {
                 chatStates[ADMIN_ID] = CHAT_STATE_SETSTATUS_CUSTOM;
                 answer(cid, TEXT_QUEST_SETSTATUS_CUSTOM);
             } else {
-                var state = orderSates[n];
+                var state = orderStates[n];
                 for (var i in orders) {
                     orders[i].state = state;
                     if (orders[i].track) {
@@ -405,8 +405,8 @@ bot.on("text", function(msg) {
             }
         } else if (mText === "/setstatus") {
             var msg = TEXT_QUEST_SETSTATUS + '\n';
-            for (var i = 0; i < orderSates.length; i++) {
-                msg += i + " - " + orderSates[i] + '\n'
+            for (var i = 0; i < orderStates.length; i++) {
+                msg += i + " - " + orderStates[i] + '\n'
             }
             chatStates[uid] = CHAT_STATE_SETSTATUS_QUEST;
             answer(cid, msg);
